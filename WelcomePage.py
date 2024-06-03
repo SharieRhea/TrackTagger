@@ -9,8 +9,10 @@ class WelcomePage(ctk.CTkFrame):
         
         Parameters
         ----------
-        onClickContinue: Callable[]
-            Defines onClick behavior for the continue button.
+        master: CTk | CTkFrame
+            Parent container of this frame.
+        on_click_continue: Callable[]
+            Defines on-click behavior for the continue button.
         """
         super().__init__(master)
         
