@@ -57,3 +57,11 @@ class TagSelection(ctk.CTkFrame):
 
         self.continue_button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
         self.continue_button.grid(row = 2, column = 0, padx = 20, pady = 20)
+
+    def get_selected_tags(self):
+        tags = []
+        for checkbox in self.checkboxes:
+            if checkbox.get() == 1:
+                tags.append(checkbox.cget("text"))
+        return tags
+
