@@ -7,6 +7,7 @@ import json
 from WelcomePage import WelcomePage
 from SearchTrack import SearchTrack
 from TrackConfirmation import TrackConfirmation
+from TagSelection import TagSelection
 
 ENDPOINT = "https://ws.audioscrobbler.com/2.0/?method="
 
@@ -18,10 +19,10 @@ def main():
     app.mainloop()
 
 class Application(ctk.CTk):
-    """ The base application class for CTkinter that holds the entire UI. """
+    """The base application class for CTkinter that holds the entire UI."""
 
     def __init__(self, key):
-        """ Initializes window size, title, and display welcome page. """
+        """Initializes window size, title, and display welcome page."""
         super().__init__()
         self.key = key
 
@@ -32,23 +33,29 @@ class Application(ctk.CTk):
         self.display_welcome_page()
 
     def display_welcome_page(self):
-        """ Displays a frame to collect the directory path and tag lists. """
+        """Displays a frame to collect the directory path and tag lists."""
         self.welcome_page = WelcomePage(self, self.on_click_continue_welcome_page)
         self.welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_welcome_page(self):
-        """ Collects data from welcome page and begins processing data. """
+        """Collects data from welcome page and begins processing data."""
         self.directory_path = self.welcome_page.get_directory_path()
         self.allowed_tags = self.welcome_page.get_allowed_tags()
         self.denied_tags = self.welcome_page.get_denied_tags()
         self.welcome_page.destroy()
-        self.process_song("ghost", "confetti")
+        self.process_song("Dust in the Wind", "Kansas")
 
     def on_click_continue_search_track(self):
         """Collects data from the search track page and begins processing a song."""
         title_search = self.search_track.get_title()
         artist_search = self.search_track.get_artist()
         self.process_song(title_search, artist_search)
+
+    def on_click_yes_track_confirmation(self):
+        """Destroys the track confirmation dialog and sets up tag dialog."""
+        self.track_confirmation.destroy()
+        self.tag_selection = TagSelection(self, self.title, self.artist, self.tags, self.allowed_tags, self.denied_tags, None)
+        self.tag_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def process_song(self, title_search, artist_search):
         """Uses the last.fm API to search for track info based on title and artist."""
@@ -61,12 +68,16 @@ class Application(ctk.CTk):
             self.search_track.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
 
-        title = data["track"]["name"]
-        artist = data["track"]["artist"]["name"]
+        self.title = data["track"]["name"]
+        self.artist = data["track"]["artist"]["name"]
         playcount = data["track"]["playcount"]
+        
+        self.tags = []
+        for tag in data["track"]["toptags"]["tag"]:
+            self.tags.append(tag["name"].lower())
 
         # display confirmation page for this track
-        self.track_confirmation = TrackConfirmation(self, title, artist, playcount, None, None)
+        self.track_confirmation = TrackConfirmation(self, self.title, self.artist, playcount, self.on_click_yes_track_confirmation, None)
         self.track_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
         # todo: tag dialog
