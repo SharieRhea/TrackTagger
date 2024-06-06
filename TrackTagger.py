@@ -44,8 +44,15 @@ class Application(ctk.CTk):
     def on_click_continue_welcome_page(self, welcome_page):
         """Collects data from welcome page and begins processing data."""
         self.directory_path = welcome_page.get_directory_path()
-        self.allowed_tags = welcome_page.get_allowed_tags()
-        self.denied_tags = welcome_page.get_denied_tags()
+        
+        if not os.path.isdir(self.directory_path):
+            welcome_page.destroy()
+            welcome_page = WelcomePage(self, lambda: self.on_click_continue_welcome_page(welcome_page), invalid_directory = True)
+            welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+        
+        self.allowed_tags = set(welcome_page.get_allowed_tags().split(","))
+        self.denied_tags = set(welcome_page.get_denied_tags().split(","))
         welcome_page.destroy()
 
         # add all files to a list to be processed
@@ -78,6 +85,11 @@ class Application(ctk.CTk):
     def on_click_continue_tag_selection(self, tag_selection):
         """Collects data from the tag selection dialog and proceeds to album selection."""
         self.tags = tag_selection.get_selected_tags()
+
+        # add tags to the allowed list so they are auto-selected in the future
+        for tag in self.tags:
+            self.allowed_tags.add(tag)
+
         tag_selection.destroy()
 
         if self.album_found:
@@ -151,6 +163,13 @@ class Application(ctk.CTk):
     def process_song(self, track_search):
         """Uses the last.fm API to search for track info based on title and artist."""
 
+        if self.song_index >= len(self.song_list):
+            if track_search is not None:
+                track_search.destroy()
+            thank_you_message = ctk.CTkLabel(master = self, text = "Thank you for using TrackTagger!", font = ("", 20))
+            thank_you_message.grid(row = 0, column = 0, padx = 20, pady = 20)
+            return
+
         if track_search is None:
             self.filepath = self.song_list[self.song_index].path
             filename = self.song_list[self.song_index].name
@@ -216,6 +235,7 @@ class Application(ctk.CTk):
         file["genre"] = self.tags
         file.save()
 
+        os.rename(self.filepath, f"{self.directory_path}{self.title} - {self.artist}.mp3")
         self.song_index = self.song_index + 1
         self.process_song(None)
 

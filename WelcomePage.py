@@ -3,7 +3,7 @@ import customtkinter as ctk
 class WelcomePage(ctk.CTkFrame):
     """ Holds the UI for the opening dialog of track_tagger. Text entries for directory path, allowed tags, and denied tags. """
 
-    def __init__(self, master, on_click_continue):
+    def __init__(self, master, on_click_continue, invalid_directory = False):
         """ 
         Initializes UI components.
         
@@ -13,6 +13,8 @@ class WelcomePage(ctk.CTkFrame):
             Parent container of this frame.
         on_click_continue: Callable[]
             Defines on-click behavior for the continue button.
+        invalid_directory: boolean
+            True denotes that the provided directory was invalid and triggers an error message.
         """
         super().__init__(master)
         
@@ -45,6 +47,10 @@ class WelcomePage(ctk.CTkFrame):
 
         self.button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
         self.button.grid(row = 8, column = 0, padx = 20, pady = 20)
+
+        if invalid_directory:
+            self.invalid_directory_label = ctk.CTkLabel(self, text = "Please provide a valid directory path.", text_color = "red")
+            self.invalid_directory_label.grid(row = 9, column = 0, padx = 20, pady = (0, 20), sticky = "w")
 
     def get_directory_path(self):
         return self.directory_path.get()

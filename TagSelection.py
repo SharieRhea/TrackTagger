@@ -55,13 +55,22 @@ class TagSelection(ctk.CTkFrame):
             box.grid(row = row_counter, column = 0, padx = 20, pady = 5, sticky = "w")
             row_counter = row_counter + 1
 
+        self.custom_tags_label = ctk.CTkLabel(master = self, text = "Add custom tags using a comma-separated list:")
+        self.custom_tags_label.grid(row = 2, column = 0, padx = 20, sticky = "w")
+
+        self.custom_tags_entry = ctk.CTkEntry(master = self, width = 400, placeholder_text = "pop, punk pop")
+        self.custom_tags_entry.grid(row = 3, column = 0, padx = 20, pady = (5, 0), sticky = "w")
+
         self.continue_button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
-        self.continue_button.grid(row = 2, column = 0, padx = 20, pady = 20)
+        self.continue_button.grid(row = 4, column = 0, padx = 20, pady = 20)
 
     def get_selected_tags(self):
         tags = []
         for checkbox in self.checkboxes:
             if checkbox.get() == 1:
                 tags.append(checkbox.cget("text"))
+
+        for custom_tag in self.custom_tags_entry.get().split(","):
+            tags.append(custom_tag)
         return tags
 
