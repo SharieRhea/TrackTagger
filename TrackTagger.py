@@ -51,8 +51,8 @@ class Application(ctk.CTk):
             welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
         
-        self.allowed_tags = set(welcome_page.get_allowed_tags().split(","))
-        self.denied_tags = set(welcome_page.get_denied_tags().split(","))
+        self.allowed_tags = set(welcome_page.get_allowed_tags().split(", "))
+        self.denied_tags = set(welcome_page.get_denied_tags().split(", "))
         welcome_page.destroy()
 
         # add all files to a list to be processed
@@ -103,10 +103,10 @@ class Application(ctk.CTk):
                 lambda: self.on_click_yes_album_confirmation(album_confirmation),
                 lambda: self.on_click_no_album_confirmation(album_confirmation)
             )
-            album_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20)
+            album_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
         else:
             album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
-            album_search.grid(row = 0, column = 0, padx = 20, pady = 20)
+            album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_yes_album_confirmation(self, album_confirmation):
         album_confirmation.destroy()
@@ -115,11 +115,16 @@ class Application(ctk.CTk):
     def on_click_no_album_confirmation(self, album_confirmation):
         album_confirmation.destroy()
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
-        album_search.grid(row = 0, column = 0, padx = 20, pady = 20)
+        album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_album_search(self, album_search):
         album_title_search = album_search.get_title()
         album_search.destroy()
+
+        if album_title_search == "":
+            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search), invalid_search = True)
+            album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
 
         parameters = {
             "method": "album.search",
@@ -129,6 +134,13 @@ class Application(ctk.CTk):
         }
         info = requests.get(ENDPOINT, params = parameters)
         album_data = json.loads(info.text)
+        
+        # no albums found for given search criteria
+        if "results" not in album_data:
+            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search), invalid_search = True)
+            album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
         self.albums = album_data["results"]["albummatches"]["album"]
 
         album_selection = AlbumSelection(
@@ -139,7 +151,7 @@ class Application(ctk.CTk):
             lambda: self.on_click_continue_album_selection(album_selection), 
             lambda: self.on_click_back_album_selection(album_selection)
         )
-        album_selection.grid(row = 0, column = 0, padx = 20, pady = 20)
+        album_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_album_selection(self, album_selection):
         self.album_index = album_selection.get_album_index()
@@ -149,8 +161,11 @@ class Application(ctk.CTk):
         self.album_artist = self.albums[self.album_index]["artist"]
     
         album_image_url = self.albums[self.album_index]["image"][-1]["#text"]
-        response = requests.get(album_image_url)
-        self.cover = response.content
+        if album_image_url != "":
+            response = requests.get(album_image_url)
+            self.cover = response.content
+        else:
+            self.cover = None
 
         self.write_out_metadata()
 
@@ -158,7 +173,7 @@ class Application(ctk.CTk):
         album_selection.destroy()
 
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
-        album_search.grid(row = 0, column = 0, padx = 20, pady = 20)
+        album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def process_song(self, track_search):
         """Uses the last.fm API to search for track info based on title and artist."""
@@ -179,6 +194,12 @@ class Application(ctk.CTk):
             title_search = track_search.get_title()
             artist_search = track_search.get_artist()
             track_search.destroy()
+
+            if title_search == "" or artist_search == "":
+                filename = self.song_list[self.song_index].name
+                track_search = SearchTrack(self, filename.split(" - ")[0], filename.split(" - ")[1][:-4], lambda: self.on_click_continue_search_track(track_search), invalid_search = True)
+                track_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+                return
 
         parameters = {
             "method": "track.getInfo",
@@ -209,8 +230,11 @@ class Application(ctk.CTk):
             self.album_title = data["track"]["album"]["title"]
             self.album_artist = data["track"]["album"]["artist"]
             album_image_url = data["track"]["album"]["image"][-1]["#text"]
-            response = requests.get(album_image_url)
-            self.cover = response.content
+            if album_image_url != "":
+                response = requests.get(album_image_url)
+                self.cover = response.content
+            else:
+                self.cover = None
         else:
             self.album_found = False
 
@@ -231,7 +255,8 @@ class Application(ctk.CTk):
         file["artist"] = self.artist
         file["album"] = self.album_title
         file["albumartist"] = self.album_artist
-        file["artwork"] = BytesIO(self.cover).read()
+        if self.cover is not None:
+            file["artwork"] = BytesIO(self.cover).read()
         file["genre"] = self.tags
         file.save()
 

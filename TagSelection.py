@@ -70,7 +70,7 @@ class TagSelection(ctk.CTkFrame):
             if checkbox.get() == 1:
                 tags.append(checkbox.cget("text"))
 
-        for custom_tag in self.custom_tags_entry.get().split(","):
+        for custom_tag in self.custom_tags_entry.get().split(", "):
             tags.append(custom_tag)
         return tags
 

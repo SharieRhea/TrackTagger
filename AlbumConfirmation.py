@@ -39,9 +39,10 @@ class AlbumConfirmation(ctk.CTkFrame):
         self.album_sub_frame = ctk.CTkFrame(master = self)
         self.album_sub_frame.grid(row = 1, column = 0, padx = 20, pady = (0, 20), sticky = "ew")
 
-        image = ctk.CTkImage(light_image = Image.open(BytesIO(cover)), size = (150, 150))
-        self.cover_image = ctk.CTkLabel(master = self.album_sub_frame, image = image, text = "")
-        self.cover_image.grid(row = 0, column = 0, padx = 20, pady = 20)
+        if cover is not None:
+            image = ctk.CTkImage(light_image = Image.open(BytesIO(cover)), size = (150, 150))
+            self.cover_image = ctk.CTkLabel(master = self.album_sub_frame, image = image, text = "")
+            self.cover_image.grid(row = 0, column = 0, padx = 20, pady = 20)
 
         self.album_info_label = ctk.CTkLabel(master = self.album_sub_frame, text = f"{album_title} by {album_artist}")
         self.album_info_label.grid(row = 0, column = 1, padx = 20, pady = 20)

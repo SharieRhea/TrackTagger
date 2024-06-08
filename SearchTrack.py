@@ -3,7 +3,7 @@ import customtkinter as ctk
 class SearchTrack(ctk.CTkFrame):
     """Holds the UI for searching for a track by title and artist."""
 
-    def __init__(self, master, title, artist, on_click_continue):
+    def __init__(self, master, title, artist, on_click_continue, invalid_search = False):
         """
         Initializes UI components.
 
@@ -17,6 +17,8 @@ class SearchTrack(ctk.CTkFrame):
             The artist of the track that couldn't be found.
         on_click_continue: Callable[]
             Defines on-click behavior for the continue button.
+        invalid_search: boolean
+            True if either search criteria is blank or no results are found.
         """
         super().__init__(master)
 
@@ -34,6 +36,10 @@ class SearchTrack(ctk.CTkFrame):
 
         self.continue_button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
         self.continue_button.grid(row = 3, column = 0, pady = 20)
+
+        if invalid_search:
+            self.invalid_search_label = ctk.CTkLabel(master = self, text = f"Please provide valid search criteria.", text_color = "red")
+            self.invalid_search_label.grid(row = 4, column = 0, padx = 20, pady = (0, 20), sticky = "w")
 
     def get_title(self):
         return self.title.get()

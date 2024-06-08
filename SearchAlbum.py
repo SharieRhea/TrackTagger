@@ -3,7 +3,7 @@ import customtkinter as ctk
 class SearchAlbum(ctk.CTkFrame):
     """Holds the UI for searching for an album by title and artist."""
 
-    def __init__(self, master, title, artist, on_click_continue):
+    def __init__(self, master, title, artist, on_click_continue, invalid_search = False):
         """
         Initializes UI components.
 
@@ -17,6 +17,8 @@ class SearchAlbum(ctk.CTkFrame):
             The artist of the current track. 
         on_click_continue: Callable[]
             Defines on-click behavior for the continue button.
+        invalid_search: boolean
+            True if the title search was empty on continue.
         """
         super().__init__(master)
 
@@ -31,6 +33,10 @@ class SearchAlbum(ctk.CTkFrame):
 
         self.continue_button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
         self.continue_button.grid(row = 3, column = 0, pady = 20)
+
+        if invalid_search:
+            self.invalid_search_label = ctk.CTkLabel(self, text = "Please provide valid search criteria.", text_color = "red")
+            self.invalid_search_label.grid(row = 4, column = 0, padx = 20, pady = (0, 20), sticky = "w")
 
     def get_title(self):
         return self.title.get()
