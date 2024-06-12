@@ -18,6 +18,7 @@ Please note that last.fm uses "tags" to describe the genre of a song. A song may
     4. requests: `pip install requests`
     5. pillow: `pip install pillow`
 3. You will need a directory that holds your mp3 files.
+4. Files *must* be named in the format `Title - Artist.mp3`.
 
 ## Installation
 

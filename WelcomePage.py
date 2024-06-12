@@ -32,6 +32,7 @@ class WelcomePage(ctk.CTkFrame):
 
         self.directory_path = ctk.CTkEntry(master = self, width = 600, placeholder_text = "path/to/directory/")
         self.directory_path.grid(row = 3, column = 0, padx = 20, sticky = "w")
+        self.directory_path.focus_set()
 
         self.allowed_tags_label = ctk.CTkLabel(master = self, text = "If desired, provide a comma-separated list of tags to auto-accept:")
         self.allowed_tags_label.grid(row = 4, column = 0, padx = 20, pady = (40, 5), stick = "w")

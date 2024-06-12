@@ -30,6 +30,7 @@ class SearchTrack(ctk.CTkFrame):
 
         self.title = ctk.CTkEntry(master = self, width = 400, placeholder_text = "title")
         self.title.grid(row = 1, column = 0, padx = 20, sticky = "w")
+        self.title.focus_set()
 
         self.artist = ctk.CTkEntry(master = self, width = 400, placeholder_text = "artist")
         self.artist.grid(row = 2, column = 0, padx = 20, pady = (5, 0), sticky = "w")

@@ -30,6 +30,7 @@ class SearchAlbum(ctk.CTkFrame):
 
         self.title = ctk.CTkEntry(master = self, width = 400, placeholder_text = "title")
         self.title.grid(row = 1, column = 0, padx = 20, sticky = "w")
+        self.title.focus_set()
 
         self.continue_button = ctk.CTkButton(master = self, text = "continue", command = on_click_continue)
         self.continue_button.grid(row = 3, column = 0, pady = 20)
