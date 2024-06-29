@@ -45,12 +45,25 @@ class Application(ctk.CTk):
         """Collects data from welcome page and begins processing data."""
         self.directory_path = welcome_page.get_directory_path()
         
+        # need to provide a directory, cannot be blank
+        if self.directory_path == "":
+            welcome_page.destroy()
+            welcome_page = WelcomePage(self, lambda: self.on_click_continue_welcome_page(welcome_page), invalid_directory = True)
+            welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
+        # user omitted the trailing slash, add it
+        if self.directory_path[-1] != '/':
+            self.directory_path += '/'
+        
+        # check if it is a valid directory
         if not os.path.isdir(self.directory_path):
             welcome_page.destroy()
             welcome_page = WelcomePage(self, lambda: self.on_click_continue_welcome_page(welcome_page), invalid_directory = True)
             welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
-        
+
+            
         self.allowed_tags = set(welcome_page.get_allowed_tags().split(", "))
         self.denied_tags = set(welcome_page.get_denied_tags().split(", "))
         welcome_page.destroy()
