@@ -161,10 +161,10 @@ class Application(ctk.CTk):
         self.album_artist = self.albums[self.album_index]["artist"]
     
         album_image_url = self.albums[self.album_index]["image"][-1]["#text"]
-        if album_image_url != "":
+        try:
             response = requests.get(album_image_url)
             self.cover = response.content
-        else:
+        except requests.exceptions.MissingSchema:
             self.cover = None
 
         self.write_out_metadata()

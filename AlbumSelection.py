@@ -47,12 +47,12 @@ class AlbumSelection(ctk.CTkFrame):
 
         row_counter = 0
         for i in range(results_count):
-            radio_button = ctk.CTkRadioButton(self.sub_frame, text = f"{albums[i]["name"]} by {albums[i]["artist"]}", variable = self.album_index, value = i)
+            radio_button = ctk.CTkRadioButton(self.sub_frame, text = f"{albums[i]['name']} by {albums[i]['artist']}", variable = self.album_index, value = i)
 
             # grab and display album cover
             try:
                 response = requests.get(albums[i]["image"][-1]["#text"])
-            except requests.HTTPError:
+            except requests.exceptions.MissingSchema:
                 # invalid or empty URL from last.fm
                 continue
             cover = Image.open(BytesIO(response.content))
