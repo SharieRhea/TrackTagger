@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+import re
 import customtkinter as ctk
 import requests
 from io import BytesIO
@@ -263,7 +264,7 @@ class Application(ctk.CTk):
         track_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def write_out_metadata(self):
-        file: dict[str, str | bytes] = music_tag.load_file(self.filepath)
+        file = music_tag.load_file(self.filepath)
         file["title"] = self.title
         file["artist"] = self.artist
         file["album"] = self.album_title
@@ -273,7 +274,8 @@ class Application(ctk.CTk):
         file["genre"] = self.tags
         file.save()
 
-        os.rename(self.filepath, f"{self.directory_path}{self.title} - {self.artist}.mp3")
+        # remove illegal filepath characters from the title and artist before renaming
+        os.rename(self.filepath, f"{self.directory_path}{re.sub('[\\/:*?"<>|]', '', self.title)} - {re.sub('[\\/:*?"<>|]', '', self.artist)}.mp3")
         self.song_index = self.song_index + 1
         self.process_song(None)
 
