@@ -38,6 +38,7 @@ class Application(ctk.CTk):
 
         self.display_welcome_page()
 
+    # WelcomePage
     def display_welcome_page(self):
         """Displays a frame to collect the directory path and tag lists."""
         welcome_page = WelcomePage(self, lambda: self.on_click_continue_welcome_page(welcome_page))
@@ -80,6 +81,7 @@ class Application(ctk.CTk):
 
         self.process_song(None)
 
+    # SearchTrack
     def on_click_search_search_track(self, search_track):
         """Collects data from the search track page and begins processing a song."""
         self.process_song(search_track)
@@ -101,6 +103,7 @@ class Application(ctk.CTk):
         tag_selection = TagSelection(self, self.title, self.artist, self.tags, self.allowed_tags, self.denied_tags, lambda: self.on_click_continue_tag_selection(tag_selection))
         tag_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # TrackConfirmation
     def on_click_yes_track_confirmation(self, track_confirmation):
         """Destroys the track confirmation dialog and sets up tag dialog."""
         track_confirmation.destroy()
@@ -113,6 +116,7 @@ class Application(ctk.CTk):
         search_track = SearchTrack(self, title_search, artist_search, self.filename, lambda: self.on_click_update_search_track(search_track), lambda: self.on_click_search_search_track(search_track))
         search_track.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # TagSelection
     def on_click_continue_tag_selection(self, tag_selection):
         """Collects data from the tag selection dialog and proceeds to album selection."""
         self.tags = tag_selection.get_selected_tags()
@@ -139,6 +143,7 @@ class Application(ctk.CTk):
             album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # AlbumConfirmation
     def on_click_yes_album_confirmation(self, album_confirmation):
         """Clears UI and writes out metadata for the current track."""
         album_confirmation.destroy()
@@ -150,6 +155,7 @@ class Application(ctk.CTk):
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # AlbumSearch
     def on_click_update_album_search(self, album_search):
         """"""
         self.album_title = album_search.get_title()
@@ -214,6 +220,7 @@ class Application(ctk.CTk):
         )
         album_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # ManualAlbumUpdate
     def on_click_update_manual_album_update(self, manual_album_update):
         """Verifies provided album artist and cover path are valid, then writes out metadata."""
         self.album_artist = manual_album_update.get_album_artist()
@@ -257,6 +264,7 @@ class Application(ctk.CTk):
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # AlbumSelection
     def on_click_continue_album_selection(self, album_selection):
         """Saves the album information and writes out metadata for the current track."""
         self.album_index = album_selection.get_album_index()
@@ -278,6 +286,7 @@ class Application(ctk.CTk):
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
+    # Utility
     def process_song(self, track_search):
         """First, checks to see if there is existing metadata. Next, uses the last.fm API to search for track info based on title and artist."""
 
