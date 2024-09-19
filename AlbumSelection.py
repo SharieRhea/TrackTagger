@@ -1,7 +1,7 @@
 import customtkinter as ctk
 import tkinter
 import requests
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 
 class AlbumSelection(ctk.CTkFrame):
@@ -52,10 +52,10 @@ class AlbumSelection(ctk.CTkFrame):
             # grab and display album cover
             try:
                 response = requests.get(albums[i]["image"][-1]["#text"])
-            except requests.exceptions.MissingSchema:
+                cover = Image.open(BytesIO(response.content))
+            except (requests.exceptions.MissingSchema, UnidentifiedImageError):
                 # invalid or empty URL from last.fm
                 continue
-            cover = Image.open(BytesIO(response.content))
             image = ctk.CTkImage(light_image = cover, size = (100, 100))
             cover_image = ctk.CTkLabel(master = self.sub_frame, image = image, text = "")
 

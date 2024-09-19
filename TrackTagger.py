@@ -140,15 +140,18 @@ class Application(ctk.CTk):
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_yes_album_confirmation(self, album_confirmation):
+        """Clears UI and writes out metadata for the current track."""
         album_confirmation.destroy()
         self.write_out_metadata()
 
     def on_click_no_album_confirmation(self, album_confirmation):
+        """Clears the UI and goes back to AlbumSearch."""
         album_confirmation.destroy()
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_update_album_search(self, album_search):
+        """"""
         self.album_title = album_search.get_title()
         album_search.destroy()
 
@@ -175,6 +178,7 @@ class Application(ctk.CTk):
         manual_album_update.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_search_album_search(self, album_search):
+        """Calls SearchAlbum or AlbumSelection depending on the input."""
         album_title_search = album_search.get_title()
         album_search.destroy()
 
@@ -198,7 +202,6 @@ class Application(ctk.CTk):
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
 
-        # FIX: crashes here if no album was present in results
         self.albums = album_data["results"]["albummatches"]["album"]
 
         album_selection = AlbumSelection(
@@ -212,6 +215,7 @@ class Application(ctk.CTk):
         album_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_update_manual_album_update(self, manual_album_update):
+        """Verifies provided album artist and cover path are valid, then writes out metadata."""
         self.album_artist = manual_album_update.get_album_artist()
         album_cover_path = manual_album_update.get_album_cover_path()
         manual_album_update.destroy()
@@ -230,7 +234,7 @@ class Application(ctk.CTk):
             return
 
         # figure out if album cover path is actually an image file
-        if not os.path.isfile(album_cover_path):
+        if not os.path.isfile(album_cover_path) or not (album_cover_path.endsWith(".jpg") or album_cover_path.endsWith(".png") or album_cover_path.endsWith(".jpeg")):
             manual_album_update = ManualAlbumUpdate(
                 self, 
                 self.title, 
@@ -248,11 +252,13 @@ class Application(ctk.CTk):
             self.write_out_metadata()
                
     def on_click_back_manual_album_update(self, manual_album_update):
+        """Goes back to the SearchAlbum screen."""
         manual_album_update.destroy()
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_album_selection(self, album_selection):
+        """Saves the album information and writes out metadata for the current track."""
         self.album_index = album_selection.get_album_index()
         album_selection.destroy()
 
@@ -260,15 +266,13 @@ class Application(ctk.CTk):
         self.album_artist = self.albums[self.album_index]["artist"]
     
         album_image_url = self.albums[self.album_index]["image"][-1]["#text"]
-        try:
-            response = requests.get(album_image_url)
-            self.cover = response.content
-        except requests.exceptions.MissingSchema:
-            self.cover = None
+        response = requests.get(album_image_url)
+        self.cover = response.content
 
         self.write_out_metadata()
 
     def on_click_back_album_selection(self, album_selection):
+        """Goes back to the SearchAlbum screen."""
         album_selection.destroy()
 
         album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
@@ -390,6 +394,7 @@ class Application(ctk.CTk):
         track_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def write_out_metadata(self):
+        """Writes saved data into the metadata of the current track file."""
         file = music_tag.load_file(self.filepath)
         file["title"] = self.title
         file["artist"] = self.artist
