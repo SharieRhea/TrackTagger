@@ -15,6 +15,8 @@ class TrackConfirmation(ctk.CTkFrame):
             The title of the track.
         artist: str
             The artist of the track.
+        playcount: int
+            The number of plays for this song. -1 indicates manual entry (not from last.fm).
         on_click_yes: Callable[]
             Defines on-click behavior for accepting the track.
         on_click_no: Callable[]
@@ -25,7 +27,10 @@ class TrackConfirmation(ctk.CTkFrame):
         # center items horizontally
         self.grid_columnconfigure(0, weight = 1)
 
-        self.message_label = ctk.CTkLabel(master = self, text = f"Accept track {title} by {artist} with {playcount} plays?")
+        if playcount == -1:
+            self.message_label = ctk.CTkLabel(master = self, text = f"Accept existing title and artist {title} by {artist}?")
+        else:
+            self.message_label = ctk.CTkLabel(master = self, text = f"Accept track {title} by {artist} with {playcount} plays?")
         self.message_label.grid(row = 0, column = 0, padx = 20, pady = 20)
 
         self.sub_frame = ctk.CTkFrame(self)
