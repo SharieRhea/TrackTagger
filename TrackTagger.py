@@ -13,6 +13,7 @@ from TagSelection import TagSelection
 from AlbumConfirmation import AlbumConfirmation
 from SearchAlbum import SearchAlbum
 from AlbumSelection import AlbumSelection
+from ManualAlbumUpdate import ManualAlbumUpdate
 
 ENDPOINT = "https://ws.audioscrobbler.com/2.0/"
 
@@ -63,7 +64,6 @@ class Application(ctk.CTk):
             welcome_page = WelcomePage(self, lambda: self.on_click_continue_welcome_page(welcome_page), invalid_directory = True)
             welcome_page.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
-
             
         self.allowed_tags = set(welcome_page.get_allowed_tags().split(", "))
         self.denied_tags = set(welcome_page.get_denied_tags().split(", "))
@@ -80,9 +80,26 @@ class Application(ctk.CTk):
 
         self.process_song(None)
 
-    def on_click_continue_search_track(self, search_track):
+    def on_click_search_search_track(self, search_track):
         """Collects data from the search track page and begins processing a song."""
         self.process_song(search_track)
+
+    def on_click_update_search_track(self, search_track):
+        """Collects data from the search track page and sets the title and artist. Moves immediately to album search."""
+        self.title = search_track.get_title()
+        self.artist = search_track.get_artist()
+        search_track.destroy()
+
+        # check for invalid input
+        if self.title == "" or self.artist == "":
+            search_track = SearchTrack(self, "", "", self.filename, lambda: self.on_click_update_search_track(search_track), lambda: self.on_click_search_search_track(search_track), invalid = True)
+            search_track.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
+        self.tags = []
+        self.album_found = False
+        tag_selection = TagSelection(self, self.title, self.artist, self.tags, self.allowed_tags, self.denied_tags, lambda: self.on_click_continue_tag_selection(tag_selection))
+        tag_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_yes_track_confirmation(self, track_confirmation):
         """Destroys the track confirmation dialog and sets up tag dialog."""
@@ -93,7 +110,7 @@ class Application(ctk.CTk):
     def on_click_no_track_confirmation(self, title_search, artist_search, track_confirmation):
         """Destroys the track confirmation dialog and moves to search track dialog."""
         track_confirmation.destroy()
-        search_track = SearchTrack(self, title_search, artist_search, lambda: self.on_click_continue_search_track(search_track))
+        search_track = SearchTrack(self, title_search, artist_search, self.filename, lambda: self.on_click_update_search_track(search_track), lambda: self.on_click_search_search_track(search_track))
         search_track.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_tag_selection(self, tag_selection):
@@ -119,7 +136,7 @@ class Application(ctk.CTk):
             )
             album_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
         else:
-            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
+            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_yes_album_confirmation(self, album_confirmation):
@@ -128,15 +145,41 @@ class Application(ctk.CTk):
 
     def on_click_no_album_confirmation(self, album_confirmation):
         album_confirmation.destroy()
-        album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
+        album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
-    def on_click_continue_album_search(self, album_search):
+    def on_click_update_album_search(self, album_search):
+        self.album_title = album_search.get_title()
+        album_search.destroy()
+
+        if self.album_title == "":
+            album_search = SearchAlbum(
+                self, 
+                self.title, 
+                self.artist, 
+                lambda: self.on_click_update_album_search(album_search), 
+                lambda: self.on_click_search_album_search(album_search), 
+                invalid = True
+            )
+            album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
+        manual_album_update = ManualAlbumUpdate(
+            self, 
+            self.title, 
+            self.artist, 
+            self.album_title, 
+            lambda: self.on_click_update_manual_album_update(manual_album_update),
+            lambda: self.on_click_back_manual_album_update(manual_album_update),
+        )
+        manual_album_update.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+
+    def on_click_search_album_search(self, album_search):
         album_title_search = album_search.get_title()
         album_search.destroy()
 
         if album_title_search == "":
-            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search), invalid_search = True)
+            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search), invalid = True)
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
 
@@ -151,10 +194,11 @@ class Application(ctk.CTk):
         
         # no albums found for given search criteria
         if "results" not in album_data:
-            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search), invalid_search = True)
+            album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search), invalid = True)
             album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
 
+        # FIX: crashes here if no album was present in results
         self.albums = album_data["results"]["albummatches"]["album"]
 
         album_selection = AlbumSelection(
@@ -166,6 +210,47 @@ class Application(ctk.CTk):
             lambda: self.on_click_back_album_selection(album_selection)
         )
         album_selection.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+
+    def on_click_update_manual_album_update(self, manual_album_update):
+        self.album_artist = manual_album_update.get_album_artist()
+        album_cover_path = manual_album_update.get_album_cover_path()
+        manual_album_update.destroy()
+
+        if self.album_artist == "" or album_cover_path == "":
+            manual_album_update = ManualAlbumUpdate(
+                self, 
+                self.title, 
+                self.artist, 
+                self.album_title, 
+                lambda: self.on_click_update_manual_album_update(manual_album_update),
+                lambda: self.on_click_back_manual_album_update(manual_album_update),
+                invalid = True
+            )
+            manual_album_update.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
+        # figure out if album cover path is actually an image file
+        if not os.path.isfile(album_cover_path):
+            manual_album_update = ManualAlbumUpdate(
+                self, 
+                self.title, 
+                self.artist, 
+                self.album_title, 
+                lambda: self.on_click_update_manual_album_update(manual_album_update),
+                lambda: self.on_click_back_manual_album_update(manual_album_update),
+                invalid_path = True
+            )
+            manual_album_update.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+            return
+
+        with open(album_cover_path, 'rb') as image:
+            self.cover = image.read()
+            self.write_out_metadata()
+               
+    def on_click_back_manual_album_update(self, manual_album_update):
+        manual_album_update.destroy()
+        album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
+        album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def on_click_continue_album_selection(self, album_selection):
         self.album_index = album_selection.get_album_index()
@@ -186,11 +271,11 @@ class Application(ctk.CTk):
     def on_click_back_album_selection(self, album_selection):
         album_selection.destroy()
 
-        album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_continue_album_search(album_search))
+        album_search = SearchAlbum(self, self.title, self.artist, lambda: self.on_click_update_album_search(album_search), lambda: self.on_click_search_album_search(album_search))
         album_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
 
     def process_song(self, track_search):
-        """Uses the last.fm API to search for track info based on title and artist."""
+        """First, checks to see if there is existing metadata. Next, uses the last.fm API to search for track info based on title and artist."""
 
         if self.song_index >= len(self.song_list):
             if track_search is not None:
@@ -201,9 +286,35 @@ class Application(ctk.CTk):
 
         if track_search is None:
             self.filepath = self.song_list[self.song_index].path
-            filename = self.song_list[self.song_index].name
-            title_search = filename.split(" - ")[0]
-            artist_search = filename.split(" - ")[1][:-4]
+            self.filename = self.song_list[self.song_index].name
+
+            # check existing metadata for title and artist
+            file = music_tag.load_file(self.filepath)
+            title = str(file["title"])
+            artist = str(file["artist"])
+            # if present, no need to search, just ask user to verify
+            if title != "" and artist != "":
+                track_confirmation = TrackConfirmation(
+                    self, 
+                    title, 
+                    artist, 
+                    -1, 
+                    lambda: self.on_click_yes_track_confirmation(track_confirmation), 
+                    lambda: self.on_click_no_track_confirmation(title, artist, track_confirmation)
+                )
+                track_confirmation.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+                return
+
+            # see if filename is formatted for last.fm search
+            if " - " in self.filename:
+                title_search = self.filename.split(" - ")[0]
+                artist_search = self.filename.split(" - ")[1][:-4]
+            else:
+                filename = self.song_list[self.song_index].name
+                track_search = SearchTrack(self, "", "", self.filename, lambda: self.on_click_update_search_track(track_search), lambda: self.on_click_search_search_track(track_search))
+                track_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
+                return
+
         else:
             title_search = track_search.get_title()
             artist_search = track_search.get_artist()
@@ -211,7 +322,15 @@ class Application(ctk.CTk):
 
             if title_search == "" or artist_search == "":
                 filename = self.song_list[self.song_index].name
-                track_search = SearchTrack(self, filename.split(" - ")[0], filename.split(" - ")[1][:-4], lambda: self.on_click_continue_search_track(track_search), invalid_search = True)
+                track_search = SearchTrack(
+                    self, 
+                    filename.split(" - ")[0], 
+                    filename.split(" - ")[1][:-4], 
+                    self.filename,
+                    lambda: self.on_click_update_search_track(track_search),
+                    lambda: self.on_click_search_search_track(track_search), 
+                    invalid = True
+                )
                 track_search.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
                 return
 
@@ -227,7 +346,14 @@ class Application(ctk.CTk):
 
         if "track" not in data:
             # no track found, must search 
-            search_track = SearchTrack(self, title_search, artist_search, lambda: self.on_click_continue_search_track(search_track))
+            search_track = SearchTrack(
+                self, 
+                title_search, 
+                artist_search, 
+                self.filename, 
+                lambda: self.on_click_update_search_track(search_track), 
+                lambda: self.on_click_search_search_track(track_search)
+            )
             search_track.grid(row = 0, column = 0, padx = 20, pady = 20, sticky = "ew")
             return
 
